@@ -31,7 +31,7 @@ def main():
 
     # Caminhos dos arquivos
     input_pdf = "../data/raw/record/SIN/record_SIN-1.pdf"
-    output_csv = "../data/processed/record.csv"
+    output_csv = "../data/processed/preprocessed_input.csv"
 
     # Extrair dados do PDF
     history_components, pending_components, course, current_period = record_extractor.extract_record(input_pdf)
