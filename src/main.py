@@ -1,9 +1,11 @@
+import csv
 import time
 
-from src.heuristics.constructive_greedy import  constructive_heuristic
-from src.heuristics.refinement_local_search import refine_local
-from src.heuristics.refinement_period_group import refine_group_period
-from src.preprocessing.output_builder.csv_builder import build_csv
+from src.heuristics.constructive_greedy import greedy_heuristic
+from src.heuristics.constructive_random import random_heuristic
+from src.preprocessing.output_builder.processed_weighted_data_builder import ProcessedWeightedDataBuilder
+from src.preprocessing.output_builder.processed_normalized_data_builder import normalize_preprocessed_input
+from src.preprocessing.output_builder.processed_data_builder import build_csv
 from src.preprocessing.record_data_extraction.processors.process_student_data import StudentDataProcessor
 from src.preprocessing.record_data_extraction.processors.process_workload import WorkloadProcessor
 from src.preprocessing.record_data_extraction.processors.process_subject_history import SubjectHistoryProcessor
@@ -12,8 +14,6 @@ from src.preprocessing.record_data_extraction.validators.validate_equivalences i
 from src.preprocessing.record_data_extraction.extract_record import RecordExtractor
 
 def main():
-    start_time = time.time()
-
     # Inicializar dependências
     student_processor = StudentDataProcessor()
     workload_processor = WorkloadProcessor()
@@ -30,37 +30,51 @@ def main():
     )
 
     # Caminhos dos arquivos
-    input_pdf = "../data/raw/record/SIN/record_SIN-1.pdf"
-    output_csv = "../data/processed/preprocessed_input.csv"
+    input_pdf = "../data/raw/record/SIN/record_SIN-2.pdf"
+    processed_csv = "../data/processed/processed_input.csv"
+    normalized_csv = "../data/processed/processed_normalized_input.csv"
+    weighted_csv = "../data/processed/processed_weighted_input.csv"
 
-    # Extrair dados do PDF
-    history_components, pending_components, course, current_period = record_extractor.extract_record(input_pdf)
+    # Extrair e processar dados
+    start_time = time.time()
+    history, pending, course, period = record_extractor.extract_record(input_pdf)
+    build_csv(history, pending, processed_csv, course, period)
+    normalize_preprocessed_input(processed_csv, normalized_csv)
 
-    # Montar o arquivo CSV
-    #build_csv(history_components, pending_components, output_csv, course, current_period)
-
-    #Heuristica construtiva
-    disciplinas = constructive_heuristic(output_csv)
-
+    builder = ProcessedWeightedDataBuilder(f"../data/raw/offers/{course}/{course}_Offered_Components.csv")
+    builder.process_subjects(normalized_csv, weighted_csv)
     end_time = time.time()
-    print(f"O arquivo foi salvo com sucesso em {output_csv}")
+
+    print("\nCriacão dos Arquivos Processado:")
     print(f"Tempo de execução: {end_time - start_time:.2f} segundos")
-    print(f"Disciplinas recomendadas: {disciplinas}")
 
-    ref_time1 = time.time()
-    refinadasLocal = refine_local(disciplinas, output_csv)
-    ref_end1 = time.time()
+    def load_weighted_disciplines(csv_path):
+        disciplines = []
+        with open(csv_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                code = row[0]
+                weight = float(row[1])
+                disciplines.append((code, weight))
+        return disciplines
 
-    print(f"Após refinamento local: {refinadasLocal}")
-    print(f"Tempo de execução: {ref_end1 - ref_time1:.2f} segundos")
+    # Executar heurística gulosa
+    start_greedy = time.time()
+    greedy_selected, greedy_total_weight = greedy_heuristic(weighted_csv, course, load_weighted_disciplines, processed_csv)
+    end_greedy = time.time()
+    print("\nHeurística Gulosa:")
+    print(f"Matérias escolhidas: {greedy_selected}")
+    print(f"Peso total: {greedy_total_weight}")
+    print(f"Tempo de execução: {end_greedy - start_greedy:.4f} segundos")
 
-    ref_time2= time.time()
-    refinadasGrupo = refine_group_period(disciplinas, output_csv)
-    ref_end2 = time.time()
-
-    print(f"Após refinamento agrupado: {refinadasGrupo}")
-    print(f"Tempo de execução: {ref_end2 - ref_time2:.2f} segundos")
-
+    # Executar heurística aleatória
+    start_random = time.time()
+    random_selected, random_total_weight = random_heuristic(weighted_csv, course, load_weighted_disciplines, processed_csv)
+    end_random = time.time()
+    print("\nHeurística Aleatória:")
+    print(f"Matérias escolhidas: {random_selected}")
+    print(f"Peso total: {random_total_weight}")
+    print(f"Tempo de execução: {end_random - start_random:.4f} segundos")
 
 if __name__ == "__main__":
     main()

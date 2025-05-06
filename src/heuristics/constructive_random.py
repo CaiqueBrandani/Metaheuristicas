@@ -1,4 +1,5 @@
 import csv
+import random
 
 def load_requirements(course):
     file_path = f"../data/raw/requirements/{course}/{course}_requirements.csv"
@@ -75,24 +76,20 @@ def has_schedule_conflict(selected_disciplines, offered_components):
 
     return False
 
-def greedy_heuristic(csv_path, course, load_weighted_disciplines, processed_input_path, max_subjects=5):
+def random_heuristic(csv_path, course, load_weighted_disciplines, processed_input_path, max_subjects=5, max_attempts=1000000):
     disciplines = load_weighted_disciplines(csv_path)
-    disciplines.sort(key=lambda x: x[1], reverse=True)  # Ordena por peso
+    offered_components = load_offered_components(course)
 
     requirements = load_requirements(course)
     student_status = load_student_status(processed_input_path)
-    offered_components = load_offered_components(course)
 
-    selected_disciplines = []
-    for code, weight in disciplines:
-        if len(selected_disciplines) >= max_subjects:
-            break
+    for _ in range(max_attempts):
+        selected_disciplines = random.sample(disciplines, min(max_subjects, len(disciplines)))
+        selected_codes = [code for code, _ in selected_disciplines]
 
-        selected_codes = [d[0] for d in selected_disciplines] + [code]
         if not has_schedule_conflict(selected_codes, offered_components) and \
            not has_prerequisite_issues(selected_codes, requirements, student_status):
-            selected_disciplines.append((code, weight))
+            total_weight = sum(weight for _, weight in selected_disciplines)
+            return selected_codes, total_weight
 
-    total_weight = sum(weight for _, weight in selected_disciplines)
-    selected_codes = [code for code, _ in selected_disciplines]
-    return selected_codes, total_weight
+    return [], 0
