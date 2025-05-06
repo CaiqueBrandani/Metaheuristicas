@@ -1,6 +1,4 @@
-import random
-
-from src.heuristics.constructive_greedy import load_disciplines
+from src.heuristics.constructives.constructive_greedy import load_disciplines
 
 
 def refine_group_period(solucao_inicial, caminho_csv):

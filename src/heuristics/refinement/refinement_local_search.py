@@ -1,5 +1,4 @@
-import csv
-from src.heuristics.constructive_greedy import calculate_score, load_disciplines
+from src.heuristics.constructives.constructive_greedy import calculate_score, load_disciplines
 
 def refine_local(solucao_inicial, caminho_csv, max_saltos=5):
     todas_disciplinas = load_disciplines(caminho_csv)

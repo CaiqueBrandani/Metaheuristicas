@@ -1,5 +1,4 @@
 import csv
-import random
 
 def load_requirements(course):
     file_path = f"../data/raw/requirements/{course}/{course}_requirements.csv"
@@ -41,55 +40,62 @@ def load_offered_components(course):
             offered_components[code] = times
     return offered_components
 
-def has_schedule_conflict(selected_disciplines, offered_components):
-    schedule_map = {}
-    for code in selected_disciplines:
-        times = offered_components.get(code, [])
-        conflict_found = True  # Assume que há conflito até verificar todos os horários
 
-        for time in times:
+def has_schedule_conflict(selected_disciplines, offered_components):
+    from itertools import product
+
+    # Obter todas as combinações possíveis de horários para as disciplinas
+    all_schedules = [
+        offered_components.get(code, []) for code in selected_disciplines
+    ]
+
+    # Gerar o produto cartesiano para testar todas as combinações de horários
+    for schedule_combination in product(*all_schedules):
+        schedule_map = {}
+        conflict_found = False
+
+        for time in schedule_combination:
             if time == "--":
                 continue
 
-            # Divide horários fracionados (ex.: "3N12 + 6N34")
+            # Divide horários fracionados (ex.: "2T34 + 4T12")
             time_slots = time.split(" + ")
-            temp_schedule_map = schedule_map.copy()
-            local_conflict = False
 
             for slot in time_slots:
                 period, slots = slot[:-2], slot[-2:]
-                if period not in temp_schedule_map:
-                    temp_schedule_map[period] = set()
-                if any(slot in temp_schedule_map[period] for slot in slots):
-                    local_conflict = True
+                if period not in schedule_map:
+                    schedule_map[period] = set()
+                if any(slot in schedule_map[period] for slot in slots):
+                    conflict_found = True
                     break
-                temp_schedule_map[period].update(slots)
+                schedule_map[period].update(slots)
 
-            if not local_conflict:
-                # Atualiza o mapa de horários apenas se não houver conflito
-                schedule_map = temp_schedule_map
-                conflict_found = False
+            if conflict_found:
                 break
 
-        if conflict_found:
-            return True  # Conflito encontrado para todos os horários disponíveis
+        if not conflict_found:
+            return False  # Pelo menos uma combinação de horários é válida
 
-    return False
+    return True  # Todas as combinações têm conflito
 
-def random_heuristic(csv_path, course, load_weighted_disciplines, processed_input_path, max_subjects=5, max_attempts=1000000):
+def greedy_heuristic(csv_path, course, load_weighted_disciplines, processed_input_path, max_subjects=5):
     disciplines = load_weighted_disciplines(csv_path)
-    offered_components = load_offered_components(course)
+    disciplines.sort(key=lambda x: x[1], reverse=True)  # Ordena por peso
 
     requirements = load_requirements(course)
     student_status = load_student_status(processed_input_path)
+    offered_components = load_offered_components(course)
 
-    for _ in range(max_attempts):
-        selected_disciplines = random.sample(disciplines, min(max_subjects, len(disciplines)))
-        selected_codes = [code for code, _ in selected_disciplines]
+    selected_disciplines = []
+    for code, weight in disciplines:
+        if len(selected_disciplines) >= max_subjects:
+            break
 
+        selected_codes = [d[0] for d in selected_disciplines] + [code]
         if not has_schedule_conflict(selected_codes, offered_components) and \
            not has_prerequisite_issues(selected_codes, requirements, student_status):
-            total_weight = sum(weight for _, weight in selected_disciplines)
-            return selected_codes, total_weight
+            selected_disciplines.append((code, weight))
 
-    return [], 0
+    total_weight = sum(weight for _, weight in selected_disciplines)
+    selected_codes = [code for code, _ in selected_disciplines]
+    return selected_codes, total_weight

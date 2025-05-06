@@ -1,8 +1,8 @@
 import csv
 import time
 
-from src.heuristics.constructive_greedy import greedy_heuristic
-from src.heuristics.constructive_random import random_heuristic
+from src.heuristics.constructives.constructive_greedy import greedy_heuristic
+from src.heuristics.constructives.constructive_random import random_heuristic
 from src.preprocessing.output_builder.processed_weighted_data_builder import ProcessedWeightedDataBuilder
 from src.preprocessing.output_builder.processed_normalized_data_builder import normalize_preprocessed_input
 from src.preprocessing.output_builder.processed_data_builder import build_csv
@@ -30,7 +30,7 @@ def main():
     )
 
     # Caminhos dos arquivos
-    input_pdf = "../data/raw/record/SIN/record_SIN-2.pdf"
+    input_pdf = "../data/raw/record/CCO/record_CCO-1.pdf"
     processed_csv = "../data/processed/processed_input.csv"
     normalized_csv = "../data/processed/processed_normalized_input.csv"
     weighted_csv = "../data/processed/processed_weighted_input.csv"
