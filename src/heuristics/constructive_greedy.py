@@ -7,10 +7,11 @@ PESOS = {
     "status_0": -50, # Penalizando as matérias ja cumpridas
     "reprovado": 2,
     "pre_req": 5,
+    "tipo_materia": 10,
     "dist_periodo": 1
 }
 
-def calculate_score(status, reprovado, pre_requisitos, distancia):
+def calculate_score(status, reprovado, pre_requisitos, tipo_materia, distancia):
     if status == 2:
         base = PESOS["status_2"]
     elif status == 1:
@@ -22,7 +23,9 @@ def calculate_score(status, reprovado, pre_requisitos, distancia):
         base
         - PESOS["reprovado"] * reprovado
         - PESOS["pre_req"] * pre_requisitos
-        - PESOS["dist_periodo"] * abs(distancia)
+        - PESOS["tipo_materia"] * tipo_materia
+        - PESOS["dist_periodo"] * distancia
+
     )
 
 def load_disciplines(caminho_csv):
