@@ -60,7 +60,7 @@ class RecordExtractor:
 
         history_components = sorted(
             history_components,
-            key=lambda component: tuple(map(int, component["period"].split(".")))
+            key=lambda history_component: tuple(map(int, component["period"].split(".")))
         )
 
         return history_components, pending_components, self.course, self.current_period
