@@ -1,12 +1,13 @@
 import csv
+import json
 from collections import Counter
 
 from src.preprocessing.utils.status_enums import ApprovedStatus, FailedStatus
 
-def build_csv(history_components, pending_components, output_csv, course, current_period):
-    equivalences_file = f"../data/raw/equivalences/{course}/{course}_Equiv_Subjects_2013_2022.csv"
-    requirements_file = f"../data/raw/requirements/{course}/{course}_requirements.csv"
-    offered_components_file = f"../data/raw/offers/{course}/{course}_Offered_Components.csv"
+def build_processed_input_data(history_components, pending_components, output_csv, course, current_period, period):
+    equivalences_file = f"data/raw/equivalences/{course}/{course}_Equiv_Subjects.csv"
+    requirements_file = f"data/raw/requirements/requirements.json"
+    offered_components_file = f"data/raw/offers/{course}/{course}_Offered_Components_{period}.csv"
 
     subject_period_map = {}
     period_map = {}
@@ -20,12 +21,25 @@ def build_csv(history_components, pending_components, output_csv, course, curren
                     for sub in subject.split(" + "):
                         subject_period_map[sub.strip()] = period
 
+    def flatten_prereqs(prereq):
+        result = set()
+        if isinstance(prereq, list):
+            for item in prereq:
+                if isinstance(item, list):
+                    result.update(flatten_prereqs(item))
+                else:
+                    result.add(item)
+        elif isinstance(prereq, str):
+            result.add(prereq)
+        return result
+
     prerequisite_count = Counter()
     with open(requirements_file, mode="r", encoding="utf-8") as file:
-        for row in csv.reader(file):
-            prerequisites = row[1:]
-            for prerequisite in prerequisites:
-                prerequisite_count[prerequisite.strip()] += 1
+        requirements = json.load(file)
+        for subject, prereq_list in requirements.items():
+            prereqs_in_line = flatten_prereqs(prereq_list)
+            for prereq in prereqs_in_line:
+                prerequisite_count[prereq] += 1
 
     offered_components = {}
     with open(offered_components_file, mode="r", encoding="utf-8") as file:
@@ -46,7 +60,7 @@ def build_csv(history_components, pending_components, output_csv, course, curren
             0 if component["status"] in {status.value for status in ApprovedStatus} else 2,
             1 if (component["status"] in {status.value for status in FailedStatus} and (current_period - component["period_counter"] <= 1)) else 0,
             prerequisite_count.get(component["code"], 0),
-            2 if offered_components.get(component["code"], 0) == 1 else 1 if offered_components.get(component["code"], 0) == 3 else 0,
+            2 if offered_components.get(component["code"], 0) == 2 else 1,
             (current_period - int(subject_period_map.get(component["code"], 0))) if component["status"] in {status.value for status in FailedStatus} else 0
         ])
 
@@ -56,7 +70,7 @@ def build_csv(history_components, pending_components, output_csv, course, curren
             1,
             0,
             prerequisite_count.get(component["code"], 0),
-            2 if offered_components.get(component["code"], 0) == 1 else 1 if offered_components.get(component["code"], 0) == 3 else 0,
+            2 if offered_components.get(component["code"], 0) == 2 else 1,
             current_period - int(subject_period_map.get(component["code"], 0))
         ]
         for component in pending_components

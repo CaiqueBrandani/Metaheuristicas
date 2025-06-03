@@ -1,13 +1,13 @@
 from collections import deque
 from src.heuristics.penalty_rules import load_offered_components, load_requirements, load_student_status, has_schedule_conflict, has_prerequisite_issues
 
-def tabu_search(initial_solution, weighted_csv, load_weighted_disciplines, course, processed_csv, max_iterations=10000, tabu_size=10):
+def tabu_search(initial_solution, weighted_csv, load_weighted_disciplines, course, period, processed_csv, max_iterations=10000, tabu_size=10):
     all_disciplines = load_weighted_disciplines(weighted_csv)
     disciplines_dict = {code: weight for code, weight in all_disciplines}
 
-    requirements = load_requirements(course)
+    requirements = load_requirements()
     student_status = load_student_status(processed_csv)
-    offered_components = load_offered_components(course)
+    offered_components = load_offered_components(course, period)
 
     current_solution = initial_solution[:]
     best_solution = current_solution[:]

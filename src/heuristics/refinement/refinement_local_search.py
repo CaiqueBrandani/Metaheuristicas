@@ -14,15 +14,15 @@ def load_disciplines(csv_path):
 def calculate_score(weight):
     return weight
 
-def refine_local(constructive_heuristic, weighted_csv, course, load_weighted_disciplines, processed_csv, *args, max_jumps=5):
-    initial_solution, _ = constructive_heuristic(weighted_csv, course, load_weighted_disciplines, processed_csv, *args)
+def local_search(constructive_heuristic, weighted_csv, course, period, load_weighted_disciplines, processed_csv, *args, max_jumps=5):
+    initial_solution, _ = constructive_heuristic(weighted_csv, course, period, load_weighted_disciplines, processed_csv, *args)
 
     all_disciplines = load_weighted_disciplines(weighted_csv)
     disciplines_dict = {code: weight for code, weight in all_disciplines}
 
-    requirements = load_requirements(course)
+    requirements = load_requirements()
     student_status = load_student_status(processed_csv)
-    offered_components = load_offered_components(course)
+    offered_components = load_offered_components(course, period)
 
     best_solution = initial_solution[:]
     best_score = sum(calculate_score(disciplines_dict[code]) for code in best_solution)
