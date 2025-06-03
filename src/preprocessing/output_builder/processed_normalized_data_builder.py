@@ -1,43 +1,45 @@
 import csv
 
-def normalize_preprocessed_input(input_file, output_file):
-    data = []
-    max_distancia = 0
-    max_pre_requisito = 0
-
-    with open(input_file, mode="r", encoding="utf-8") as file:
+def load_offered_components(offer_file):
+    offered_components = set()
+    with open(offer_file, mode="r", encoding="utf-8") as file:
         reader = csv.reader(file)
         for row in reader:
-            status = int(row[1])
-            if status == 0:  # Ignorar matérias com status = 0
-                continue
+            if row[2] != "--":
+                offered_components.add(row[1])
+    return offered_components
 
-            distancia = int(row[5])
-            pre_requisito = int(row[3])
-            max_distancia = max(max_distancia, abs(distancia))
-            max_pre_requisito = max(max_pre_requisito, pre_requisito)
-            data.append(row)
+def build_processed_normalized_data(input_file, output_file, offer_file):
+    offered_components = load_offered_components(offer_file)
+    data = []
+    with open(input_file, encoding="utf-8") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if int(row[1]) != 0 and row[0] in offered_components:
+                data.append(row)
+
+    num_indices = [3, 5]
+
+    max_values = {}
+    min_values = {}
+    for idx in num_indices:
+        vals = [float(row[idx]) for row in data]
+        max_values[idx] = max(vals)
+        min_values[idx] = min(vals)
+
+    def normalize_value(value, idx):
+        range_ = max_values[idx] - min_values[idx]
+        if range_ == 0:
+            return value
+        return (value - min_values[idx]) / range_ if value >= 0 else (value - max_values[idx]) / range_
 
     normalized_data = []
     for row in data:
-        status = int(row[1])
-        pre_requisito = int(row[3])
-        tipo = int(row[4])
-        distancia = int(row[5])
+        normalized_row = row[:]
+        for idx in num_indices:
+            normalized_row[idx] = normalize_value(float(row[idx]), idx)
+        normalized_data.append(normalized_row)
 
-        status_normalizado = status / 2
-        pre_requisito_normalizado = pre_requisito / max_pre_requisito if max_pre_requisito > 0 else 0
-        tipo_normalizado = tipo / 2
-        distancia_normalizada = distancia / max_distancia if max_distancia > 0 else 0
-
-        normalized_data.append([
-            row[0],
-            status_normalizado,
-            pre_requisito_normalizado,
-            tipo_normalizado,
-            distancia_normalizada
-        ])
-
-    with open(output_file, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
+    with open(output_file, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
         writer.writerows(normalized_data)
