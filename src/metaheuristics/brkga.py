@@ -8,8 +8,7 @@ from src.heuristics.penalty_rules import (
 )
 
 def decode_chromosome(chromosome, all_disciplines, offered_components, requirements, student_status, max_subjects=5, threshold=0.5):
-    # Ordena disciplinas pelo valor do gene (prioridade)
-    sorted_disciplines = [code for _, code in sorted(zip(chromosome, all_disciplines), reverse=True)]
+
     selected = []
 
     for code, gene_val in sorted(zip(all_disciplines, chromosome), key=lambda x: x[1], reverse=True):
@@ -44,8 +43,12 @@ def run_brkga(
     if seed is not None:
         random.seed(seed)
 
+
+
     disciplines_with_weights = load_weighted_disciplines(weighted_csv)
     all_disciplines = [code for code, _ in disciplines_with_weights]
+
+    # print("Disciplinas analisadas:", all_disciplines)
 
     offered_components = load_offered_components(course)
     requirements = load_requirements(course)
@@ -98,20 +101,20 @@ def run_brkga(
 
         scored_population.sort(reverse=True, key=lambda x: x[0][0])
 
-        top_50pct = scored_population[:len(scored_population) // 2]
-        print(f"\n=== Debug: Top 50% da geração {_} ===")
-        for idx, ((score, selected), ind) in enumerate(top_50pct):
-            print(f"{idx + 1:2d}: Valor: {score:8.2f} | Matérias: {selected}")
-        print("==============================\n")
-
-        print(f"\n=== Debug: População Completa ===")
-        for idx, ((score, selected), ind) in enumerate(scored_population):
-            print(f"{idx + 1:2d}: Valor: {score:8.2f} | Matérias: {selected}")
-        print("==============================\n")
+        # top_50pct = scored_population[:len(scored_population) // 2]
+        # print(f"\n=== Debug: Top 50% da geração {_} ===")
+        # for idx, ((score, selected), ind) in enumerate(top_50pct):
+        #     print(f"{idx + 1:2d}: Valor: {score:8.2f} | Matérias: {selected}")
+        # print("==============================\n")
+        #
+        # print(f"\n=== Debug: População Completa ===")
+        # for idx, ((score, selected), ind) in enumerate(scored_population):
+        #     print(f"{idx + 1:2d}: Valor: {score:8.2f} | Matérias: {selected}")
+        # print("==============================\n")
 
         # Para contar quantos são únicos:
         unicos = set(tuple(sorted(selected)) for (score, selected), ind in scored_population)
-        print(f"Indivíduos únicos nesta geração: {len(unicos)} de {len(scored_population)}\n")
+        print(f"Indivíduos únicos na geração {_ + 1}: {len(unicos)}\n")
 
         elites = [ind for (_, ind) in scored_population[:elite_size]]
         next_population = elites[:]

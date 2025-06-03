@@ -35,7 +35,7 @@ def main():
     )
 
     # Caminhos dos arquivos
-    input_pdf = "../data/raw/record/SIN/record_SIN-2.pdf"
+    input_pdf = "../data/raw/record/SIN/record_SIN-4.pdf"
     processed_csv = "../data/processed/processed_input.csv"
     normalized_csv = "../data/processed/processed_normalized_input.csv"
     weighted_csv = "../data/processed/processed_weighted_input.csv"
@@ -52,6 +52,8 @@ def main():
 
     print("\nCriacão dos Arquivos Processado:")
     print(f"Tempo de execução: {end_time - start_time:.2f} segundos")
+
+
 
     def load_weighted_disciplines(csv_path):
         disciplines = []
@@ -130,7 +132,7 @@ def main():
         population_size=50,
         elite_fraction=0.1,
         mutant_fraction=0.2,
-        generations=10,
+        generations=50,
         max_subjects=5,
         seed=51
     )
