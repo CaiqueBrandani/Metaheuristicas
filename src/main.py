@@ -3,6 +3,7 @@ import time
 
 from src.heuristics.constructives.constructive_greedy import greedy_heuristic
 from src.heuristics.constructives.constructive_random import random_heuristic
+from src.heuristics.penalty_rules import load_offered_components, load_requirements, load_student_status
 from src.heuristics.refinement.refinement_local_search import refine_local
 from src.heuristics.refinement.refinement_tabu_search import tabu_search
 from src.preprocessing.output_builder.processed_weighted_data_builder import ProcessedWeightedDataBuilder
@@ -14,6 +15,8 @@ from src.preprocessing.record_data_extraction.processors.process_subject_history
 from src.preprocessing.record_data_extraction.processors.process_pending_components import PendingComponentsProcessor
 from src.preprocessing.record_data_extraction.validators.validate_equivalences import EquivalencesValidator
 from src.preprocessing.record_data_extraction.extract_record import RecordExtractor
+from src.metaheuristics.brkga import run_brkga
+
 
 def main():
     # Inicializar dependências
@@ -32,7 +35,7 @@ def main():
     )
 
     # Caminhos dos arquivos
-    input_pdf = "../data/raw/record/CCO/record_CCO-1.pdf"
+    input_pdf = "../data/raw/record/SIN/record_SIN-2.pdf"
     processed_csv = "../data/processed/processed_input.csv"
     normalized_csv = "../data/processed/processed_normalized_input.csv"
     weighted_csv = "../data/processed/processed_weighted_input.csv"
@@ -60,14 +63,14 @@ def main():
                 disciplines.append((code, weight))
         return disciplines
 
-    # Executar heurística gulosa
-    start_greedy = time.time()
-    greedy_selected, greedy_total_weight = greedy_heuristic(weighted_csv, course, load_weighted_disciplines, processed_csv)
-    end_greedy = time.time()
-    print("\nHeurística Gulosa:")
-    print(f"Matérias escolhidas: {greedy_selected}")
-    print(f"Peso total: {greedy_total_weight}")
-    print(f"Tempo de execução: {end_greedy - start_greedy:.4f} segundos")
+    # # Executar heurística gulosa
+    # start_greedy = time.time()
+    # greedy_selected, greedy_total_weight = greedy_heuristic(weighted_csv, course, load_weighted_disciplines, processed_csv)
+    # end_greedy = time.time()
+    # print("\nHeurística Gulosa:")
+    # print(f"Matérias escolhidas: {greedy_selected}")
+    # print(f"Peso total: {greedy_total_weight}")
+    # print(f"Tempo de execução: {end_greedy - start_greedy:.4f} segundos")
 
     # Executar heurística aleatória
     start_random = time.time()
@@ -78,44 +81,64 @@ def main():
     print(f"Peso total: {random_total_weight}")
     print(f"Tempo de execução: {end_random - start_random:.4f} segundos")
 
-    start_greedy_refine = time.time()
-    refine_local_greedy, refine_local_greedy_total_weight = refine_local(greedy_heuristic, weighted_csv, course, load_weighted_disciplines, processed_csv)
-    end_greedy_refine = time.time()
-    print("\nRefinamento Local para Heurística Gulosa:")
-    print(f"Matérias escolhidas: {refine_local_greedy}")
-    print(f"Peso total: {refine_local_greedy_total_weight}")
-    print(f"Tempo de execução: {end_greedy_refine - start_greedy_refine:.4f} segundos")
+    # start_greedy_refine = time.time()
+    # refine_local_greedy, refine_local_greedy_total_weight = refine_local(greedy_heuristic, weighted_csv, course, load_weighted_disciplines, processed_csv)
+    # end_greedy_refine = time.time()
+    # print("\nRefinamento Local para Heurística Gulosa:")
+    # print(f"Matérias escolhidas: {refine_local_greedy}")
+    # print(f"Peso total: {refine_local_greedy_total_weight}")
+    # print(f"Tempo de execução: {end_greedy_refine - start_greedy_refine:.4f} segundos")
+    #
+    # # Executar refinamento local para heurística aleatória
+    # start_random_refine = time.time()
+    # refine_local_random, refine_local_random_total_weight = refine_local(random_heuristic, weighted_csv, course, load_weighted_disciplines, processed_csv)
+    # end_random_refine = time.time()
+    # print("\nRefinamento Local para Heurística Aleatória:")
+    # print(f"Matérias escolhidas: {refine_local_random}")
+    # print(f"Peso total: {refine_local_random_total_weight}")
+    # print(f"Tempo de execução: {end_random_refine - start_random_refine:.4f} segundos")
+    #
+    # # Executar busca tabu para heurística gulosa
+    # start_tabu_greedy = time.time()
+    # tabu_greedy_selected, tabu_greedy_total_weight = tabu_search(
+    #     greedy_selected, weighted_csv, load_weighted_disciplines, course, processed_csv
+    # )
+    # end_tabu_greedy = time.time()
+    # print("\nBusca Tabu para Heurística Gulosa:")
+    # print(f"Matérias escolhidas: {tabu_greedy_selected}")
+    # print(f"Peso total: {tabu_greedy_total_weight}")
+    # print(f"Tempo de execução: {end_tabu_greedy - start_tabu_greedy:.4f} segundos")
+    #
+    # # Executar busca tabu para heurística aleatória
+    # start_tabu_random = time.time()
+    # tabu_random_selected, tabu_random_total_weight = tabu_search(
+    #     random_selected, weighted_csv, load_weighted_disciplines, course, processed_csv
+    # )
+    # end_tabu_random = time.time()
+    # print("\nBusca Tabu para Heurística Aleatória:")
+    # print(f"Matérias escolhidas: {tabu_random_selected}")
+    # print(f"Peso total: {tabu_random_total_weight}")
+    # print(f"Tempo de execução: {end_tabu_random - start_tabu_random:.4f} segundos")
 
-    # Executar refinamento local para heurística aleatória
-    start_random_refine = time.time()
-    refine_local_random, refine_local_random_total_weight = refine_local(random_heuristic, weighted_csv, course, load_weighted_disciplines, processed_csv)
-    end_random_refine = time.time()
-    print("\nRefinamento Local para Heurística Aleatória:")
-    print(f"Matérias escolhidas: {refine_local_random}")
-    print(f"Peso total: {refine_local_random_total_weight}")
-    print(f"Tempo de execução: {end_random_refine - start_random_refine:.4f} segundos")
-
-    # Executar busca tabu para heurística gulosa
-    start_tabu_greedy = time.time()
-    tabu_greedy_selected, tabu_greedy_total_weight = tabu_search(
-        greedy_selected, weighted_csv, load_weighted_disciplines, course, processed_csv
+    start_brkga = time.time()
+    print("\n--- BRKGA ---")
+    selected_brkga, total_weight_brkga = run_brkga(
+        weighted_csv,
+        course,
+        load_weighted_disciplines,
+        processed_csv,
+        population_size=50,
+        elite_fraction=0.1,
+        mutant_fraction=0.2,
+        generations=10,
+        max_subjects=5,
+        seed=51
     )
-    end_tabu_greedy = time.time()
-    print("\nBusca Tabu para Heurística Gulosa:")
-    print(f"Matérias escolhidas: {tabu_greedy_selected}")
-    print(f"Peso total: {tabu_greedy_total_weight}")
-    print(f"Tempo de execução: {end_tabu_greedy - start_tabu_greedy:.4f} segundos")
 
-    # Executar busca tabu para heurística aleatória
-    start_tabu_random = time.time()
-    tabu_random_selected, tabu_random_total_weight = tabu_search(
-        random_selected, weighted_csv, load_weighted_disciplines, course, processed_csv
-    )
-    end_tabu_random = time.time()
-    print("\nBusca Tabu para Heurística Aleatória:")
-    print(f"Matérias escolhidas: {tabu_random_selected}")
-    print(f"Peso total: {tabu_random_total_weight}")
-    print(f"Tempo de execução: {end_tabu_random - start_tabu_random:.4f} segundos")
+    end_brkga = time.time()
+    print(f"Matérias escolhidas: {selected_brkga}")
+    print(f"Peso total: {total_weight_brkga}")
+    print(f"Tempo de execução: {end_brkga - start_brkga:.4f} segundos")
 
 
 if __name__ == "__main__":
