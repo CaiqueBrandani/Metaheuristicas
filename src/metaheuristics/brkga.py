@@ -31,27 +31,27 @@ def decode_chromosome(chromosome, all_disciplines, offered_components, requireme
 def run_brkga(
     weighted_csv,
     course,
-    load_weighted_disciplines,
+    load_weights_fn,
     processed_csv,
-    population_size=50,
-    elite_fraction=0.2,
-    mutant_fraction=0.1,
-    generations=50,
-    max_subjects=5,
-    seed=None
+    period,
+    population_size,
+    elite_fraction,
+    mutant_fraction,
+    generations,
+    max_subjects,
+    seed
 ):
+
     if seed is not None:
         random.seed(seed)
 
-
-
-    disciplines_with_weights = load_weighted_disciplines(weighted_csv)
+    disciplines_with_weights = load_weights_fn(weighted_csv)
     all_disciplines = [code for code, _ in disciplines_with_weights]
 
     # print("Disciplinas analisadas:", all_disciplines)
 
-    offered_components = load_offered_components(course)
-    requirements = load_requirements(course)
+    offered_components = load_offered_components(course, period)
+    requirements = load_requirements()
     student_status = load_student_status(processed_csv)
 
     n_genes = len(all_disciplines)
@@ -113,8 +113,8 @@ def run_brkga(
         # print("==============================\n")
 
         # Para contar quantos são únicos:
-        unicos = set(tuple(sorted(selected)) for (score, selected), ind in scored_population)
-        print(f"Indivíduos únicos na geração {_ + 1}: {len(unicos)}\n")
+        # unicos = set(tuple(sorted(selected)) for (score, selected), ind in scored_population)
+        # print(f"Indivíduos únicos na geração {_ + 1}: {len(unicos)}\n")
 
         elites = [ind for (_, ind) in scored_population[:elite_size]]
         next_population = elites[:]

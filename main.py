@@ -18,6 +18,9 @@ from src.preprocessing.record_data_extraction.processors.process_subject_history
 from src.preprocessing.record_data_extraction.processors.process_pending_components import PendingComponentsProcessor
 from src.preprocessing.record_data_extraction.validators.validate_equivalences import EquivalencesValidator
 
+# >>> IMPORTAÇÃO DO BRKGA <<<
+from src.metaheuristics.brkga import run_brkga
+
 def load_weighted_disciplines(csv_path):
     import csv
     disciplines = []
@@ -31,7 +34,7 @@ def load_weighted_disciplines(csv_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--h', help='Escolha a heurística (greedy, random)')
+    parser.add_argument('--h', help='Escolha a heurística (greedy, random, brkga)')
     parser.add_argument('--r', help='Escolha o refinamento (none, local, tabu, vns)', default='none')
     parser.add_argument('--c', help='Ex: CCO ou SIN')
     parser.add_argument('--i', type=int, help='Índice do histórico (ex: 1, 2, 3...)')
@@ -59,6 +62,7 @@ def main():
     offered_components_csv = f'data/raw/offers/{args.c}/{args.c}_Offered_Components_{args.p}.csv'
     record_pdf = f'data/raw/record/{args.c}/record_{args.c}-{args.i}.pdf'
 
+    # Pré-processamento dos dados
     student_processor = StudentDataProcessor()
     workload_processor = WorkloadProcessor()
     subject_history_processor = SubjectHistoryProcessor()
@@ -76,22 +80,56 @@ def main():
     build_processed_normalized_data(processed_input_csv, processed_normalized_input_csv, offered_components_csv)
     build_processed_weighted_data(processed_normalized_input_csv, processed_weighted_input_csv)
 
-    heuristic_func = greedy_heuristic if heuristic == 'greedy' else random_heuristic
+    # Heurísticas construtivas
+    if heuristic == 'greedy':
+        heuristic_func = greedy_heuristic
+    elif heuristic == 'random':
+        heuristic_func = random_heuristic
+    elif heuristic == 'brkga':
+        start_brkga = time.time()
+        print("\n--- BRKGA ---")
+        selected_brkga, total_weight_brkga = run_brkga(
+            processed_weighted_input_csv,
+            course,
+            load_weighted_disciplines,
+            processed_input_csv,
+            period,
+            population_size=50,
+            elite_fraction=0.1,
+            mutant_fraction=0.2,
+            generations=50,
+            max_subjects=5,
+            seed=51
+        )
 
+        exec_time = time.time() - start_brkga
+        print(f"Matérias escolhidas: {selected_brkga}")
+        print(f"Peso total: {total_weight_brkga}")
+        print(f"Tempo de execução: {exec_time:.4f} segundos")
+        return
+    else:
+        print_error("Heurística inválida. Use 'greedy', 'random' ou 'brkga'.")
+        sys.exit(1)
+
+    # Execução da heurística (greedy ou random)
     start = time.time()
     selected, total_weight = heuristic_func(processed_weighted_input_csv, course, period, load_weighted_disciplines, processed_input_csv)
     exec_time = time.time() - start
     print_result(f"Heurística {heuristic.capitalize()}", selected, total_weight, exec_time)
 
+    # Refinamento (opcional)
     if refinement == 'local':
         start = time.time()
-        refined, refined_weight = local_search(heuristic_func, processed_weighted_input_csv, course, period, load_weighted_disciplines,
-                                               processed_input_csv)
+        refined, refined_weight = local_search(
+            heuristic_func, processed_weighted_input_csv, course, period, load_weighted_disciplines, processed_input_csv
+        )
         exec_time = time.time() - start
         print_result(f"Refinamento Local ({heuristic})", refined, refined_weight, exec_time)
     elif refinement == 'tabu':
         start = time.time()
-        tabu_selected, tabu_weight = tabu_search(selected, processed_weighted_input_csv, load_weighted_disciplines, course, period, processed_input_csv)
+        tabu_selected, tabu_weight = tabu_search(
+            selected, processed_weighted_input_csv, load_weighted_disciplines, course, period, processed_input_csv
+        )
         exec_time = time.time() - start
         print_result(f"Busca Tabu ({heuristic})", tabu_selected, tabu_weight, exec_time)
     elif refinement == 'vns':
