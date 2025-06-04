@@ -44,6 +44,8 @@ def run_brkga(
 
     if seed is not None:
         random.seed(seed)
+    else:
+        random.seed(42)
 
     disciplines_with_weights = load_weights_fn(weighted_csv)
     all_disciplines = [code for code, _ in disciplines_with_weights]
@@ -131,7 +133,7 @@ def run_brkga(
             elite_parent = random.choice(elites)
             other_parent = random.choice(population)  # escolher em toda população para mais diversidade
             child = [
-                elite_gene if random.random() < 0.5 else other_gene
+                elite_gene if random.random() < 0.7 else other_gene
                 for elite_gene, other_gene in zip(elite_parent, other_parent)
             ]
             # mutação leve
