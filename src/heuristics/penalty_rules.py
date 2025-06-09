@@ -1,5 +1,6 @@
 import csv
 import json
+from src.heuristics.utils.utils import *
 
 def load_requirements():
     file_path = f"data/raw/requirements/requirements.json"
@@ -35,18 +36,26 @@ def has_prerequisite_issues(selected_disciplines, requirements, student_status):
                 return True
     return False
 
+
 def load_offered_components(course, period):
     file_path = f"data/raw/offers/{course}/{course}_Offered_Components_{period}.csv"
     offered_components = {}
+
     with open(file_path, mode="r", encoding="utf-8") as file:
         reader = csv.reader(file)
         for row in reader:
             code = row[1]
-            times = row[3:]
-            offered_components[code] = times
+            times = row[3:]  # ['25N12', '--'] ou ['3T34 + 6N12', '--']
+            if code not in offered_components:
+                offered_components[code] = []
+            offered_components[code].append(times)
+
     return offered_components
 
-def has_schedule_conflict(selected_disciplines, offered_components):
+
+
+
+def has_schedule_conflict(selected_disciplines, offered_components, return_combination=False):
     from itertools import product
 
     all_schedules = [
@@ -56,26 +65,30 @@ def has_schedule_conflict(selected_disciplines, offered_components):
     for schedule_combination in product(*all_schedules):
         schedule_map = {}
         conflict_found = False
+        blocos = []
+        for entry in schedule_combination:
+            if not isinstance(entry, (list, tuple)):
+                entry = [entry]
+            for s in entry:
+                if not isinstance(s, str) or s.strip() == '--':
+                    continue
+                for part in s.split(' + '):
+                    blocos += split_blocos(part.strip())
 
-        for time in schedule_combination:
-            if time == "--":
-                continue
-
-            time_slots = time.split(" + ")
-
-            for slot in time_slots:
-                period, slots = slot[:-2], slot[-2:]
-                if period not in schedule_map:
-                    schedule_map[period] = set()
-                if any(slot in schedule_map[period] for slot in slots):
-                    conflict_found = True
-                    break
-                schedule_map[period].update(slots)
-
-            if conflict_found:
+        chaves = blocos_para_chaves(blocos)
+        for key in chaves:
+            if key in schedule_map:
+                conflict_found = True
                 break
-
+            schedule_map[key] = True
         if not conflict_found:
-            return False
-
-    return True
+            if return_combination:
+                print("COMBINAÇÃO VÁLIDA:", schedule_combination)
+                return False, schedule_combination
+            else:
+                return False
+    if return_combination:
+        print("NENHUMA COMBINAÇÃO VÁLIDA")
+        return True, None
+    else:
+        return True
