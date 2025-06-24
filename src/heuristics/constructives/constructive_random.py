@@ -1,10 +1,11 @@
 import random
 
-from src.heuristics.penalty_rules import load_offered_components, load_requirements, load_student_status, has_schedule_conflict, has_prerequisite_issues
+from src.heuristics.penalty_rules import load_requirements, load_student_status, has_prerequisite_issues
 
+def random_heuristic(csv_path, course, period, load_weighted_disciplines, processed_input_path, max_subjects=5, max_no_improve=10, seed=None):
+    if seed is not None:
+        random.seed(seed)
 
-def random_heuristic(csv_path, course, period, load_weighted_disciplines, processed_input_path, max_subjects=5, max_no_improve=10000):
-    random.seed(None)
     disciplines = load_weighted_disciplines(csv_path)
     requirements = load_requirements()
     student_status = load_student_status(processed_input_path)

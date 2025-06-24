@@ -1,5 +1,6 @@
 import csv
 import json
+import re
 
 def load_requirements():
     file_path = f"data/raw/requirements/requirements.json"
@@ -47,35 +48,37 @@ def load_offered_components(course, period):
     return offered_components
 
 def has_schedule_conflict(selected_disciplines, offered_components):
-    from itertools import product
-
-    all_schedules = [
-        offered_components.get(code, []) for code in selected_disciplines
-    ]
-
-    for schedule_combination in product(*all_schedules):
-        schedule_map = {}
-        conflict_found = False
-
-        for time in schedule_combination:
-            if time == "--":
+    def parse_slots(schedule_str):
+        slots = []
+        for part in schedule_str.split(" + "):
+            m = re.match(r"(\d+)([TMN])(\d+)", part)
+            if not m:
                 continue
+            days, period, hours = m.groups()
+            for d in days:
+                for h in hours:
+                    slots.append((d, period, h))
+        return slots
 
-            time_slots = time.split(" + ")
+    occupied = set()
+    conflicts = []
 
-            for slot in time_slots:
-                period, slots = slot[:-2], slot[-2:]
-                if period not in schedule_map:
-                    schedule_map[period] = set()
-                if any(slot in schedule_map[period] for slot in slots):
-                    conflict_found = True
-                    break
-                schedule_map[period].update(slots)
+    for disc in selected_disciplines:
+        options = offered_components.get(disc, [])
+        encaixou = False
 
-            if conflict_found:
+        for sched in options:
+            if sched == "--":
+                continue
+            slots = parse_slots(sched)
+            # testa conflito
+            if all(slot not in occupied for slot in slots):
+                # reserva estes slots
+                occupied.update(slots)
+                encaixou = True
                 break
 
-        if not conflict_found:
-            return False
+        if not encaixou:
+            conflicts.append(disc)
 
-    return True
+    return len(conflicts) > 0, conflicts

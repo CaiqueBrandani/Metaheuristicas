@@ -1,4 +1,4 @@
-from src.heuristics.penalty_rules import load_requirements, load_student_status, load_offered_components, has_schedule_conflict, has_prerequisite_issues
+from src.heuristics.penalty_rules import load_requirements, load_student_status, load_offered_components, has_prerequisite_issues
 
 def greedy_heuristic(csv_path, course, period, load_weighted_disciplines, processed_input_path, max_subjects=5):
     disciplines = load_weighted_disciplines(csv_path)
@@ -14,8 +14,7 @@ def greedy_heuristic(csv_path, course, period, load_weighted_disciplines, proces
             break
 
         selected_codes = [d[0] for d in selected_disciplines] + [code]
-        if not has_schedule_conflict(selected_codes, offered_components) and \
-           not has_prerequisite_issues(selected_codes, requirements, student_status):
+        if not has_prerequisite_issues(selected_codes, requirements, student_status):
             selected_disciplines.append((code, weight))
 
     total_weight = sum(weight for _, weight in selected_disciplines)

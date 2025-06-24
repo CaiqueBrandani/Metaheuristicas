@@ -1,51 +1,73 @@
 from collections import deque
-from src.heuristics.penalty_rules import load_offered_components, load_requirements, load_student_status, has_schedule_conflict, has_prerequisite_issues
+from src.heuristics.penalty_rules import (
+    load_offered_components, load_requirements,
+    load_student_status, has_schedule_conflict,
+    has_prerequisite_issues
+)
+from src.metaheuristics.vns import load_equivalences
 
-def tabu_search(initial_solution, weighted_csv, load_weighted_disciplines, course, period, processed_csv, max_iterations=10000, tabu_size=10):
-    all_disciplines = load_weighted_disciplines(weighted_csv)
-    disciplines_dict = {code: weight for code, weight in all_disciplines}
-
+def tabu_search(initial_solution, weighted_csv, load_weighted_disciplines,
+                course, period, processed_csv, max_iterations=1000,
+                tabu_size=20):
+    weights      = dict(load_weighted_disciplines(weighted_csv))
     requirements = load_requirements()
-    student_status = load_student_status(processed_csv)
-    offered_components = load_offered_components(course, period)
+    status       = load_student_status(processed_csv)
+    offered      = load_offered_components(course, period)
+    equivs       = load_equivalences(course)
+    offered_set  = set(offered.keys())
 
-    current_solution = initial_solution[:]
-    best_solution = current_solution[:]
-    best_score = sum(disciplines_dict[code] for code in best_solution)
+    def score(sol):
+        return sum(weights[c] for c in sol)
 
-    tabu_list = deque(maxlen=tabu_size)
+    def is_valid(sol):
+        conflict, _ = has_schedule_conflict(sol, offered)
+        return not conflict and not has_prerequisite_issues(sol, requirements, status)
+
+    def fix_conflicts(sol):
+        sol = sol[:]
+        for disc in has_schedule_conflict(sol, offered)[1]:
+            # tenta equivalências
+            for eq in equivs.get(disc, []):
+                if eq in offered_set and eq not in sol:
+                    tmp = sol[:]; tmp[tmp.index(disc)] = eq
+                    if is_valid(tmp):
+                        sol = tmp
+                        break
+            else:
+                # tenta qualquer outra disciplina
+                for alt in weights:
+                    if alt not in sol:
+                        tmp = sol[:]; tmp[tmp.index(disc)] = alt
+                        if is_valid(tmp):
+                            sol = tmp
+                            break
+                else:
+                    sol.remove(disc)
+        return sol
+
+    def neighbors(sol):
+        for i in range(len(sol)):
+            for cand in weights:
+                if cand not in sol:
+                    tmp = sol[:]; tmp[i] = cand
+                    if is_valid(tmp):
+                        yield tmp
+
+    # corrige conflitos iniciais
+    current    = fix_conflicts(initial_solution[:])
+    best       = current[:]
+    best_score = score(best)
+    tabu       = deque([current], maxlen=tabu_size)
 
     for _ in range(max_iterations):
-        neighbors = []
+        # vizinhos válidos e não tabu
+        opts = [n for n in neighbors(current) if n not in tabu]
+        if not opts:
+            break
+        current = max(opts, key=score)
+        tabu.append(current)
+        sc = score(current)
+        if sc > best_score:
+            best, best_score = current[:], sc
 
-        for i in range(len(current_solution)):
-            for code_out in disciplines_dict:
-                if code_out not in current_solution:
-                    neighbor = current_solution[:]
-                    neighbor[i] = code_out
-
-                    if has_schedule_conflict(neighbor, offered_components) or \
-                       has_prerequisite_issues(neighbor, requirements, student_status):
-                        continue
-
-                    neighbors.append(neighbor)
-
-        best_neighbor = None
-        best_neighbor_score = -float('inf')
-        for neighbor in neighbors:
-            if neighbor in tabu_list:
-                continue
-            score = sum(disciplines_dict[code] for code in neighbor)
-            if score > best_neighbor_score:
-                best_neighbor = neighbor
-                best_neighbor_score = score
-
-        if best_neighbor:
-            current_solution = best_neighbor
-            tabu_list.append(best_neighbor)
-
-            if best_neighbor_score > best_score:
-                best_solution = best_neighbor
-                best_score = best_neighbor_score
-
-    return best_solution, best_score
+    return best, best_score

@@ -6,7 +6,7 @@ from src.heuristics.constructives.constructive_greedy import greedy_heuristic
 from src.heuristics.constructives.constructive_random import random_heuristic
 from src.heuristics.refinement.refinement_local_search import local_search
 from src.heuristics.refinement.refinement_tabu_search import tabu_search
-from src.heuristics.refinement.refinement_variable_neighborhood_search import variable_neighborhood_search
+from src.metaheuristics.vns import variable_neighborhood_search
 from src.interface.output_interface import print_result, print_error, print_options_dict
 from src.preprocessing.output_builder.processed_weighted_data_builder import build_processed_weighted_data
 from src.preprocessing.output_builder.processed_data_builder import build_processed_input_data
@@ -17,6 +17,7 @@ from src.preprocessing.record_data_extraction.processors.process_workload import
 from src.preprocessing.record_data_extraction.processors.process_subject_history import SubjectHistoryProcessor
 from src.preprocessing.record_data_extraction.processors.process_pending_components import PendingComponentsProcessor
 from src.preprocessing.record_data_extraction.validators.validate_equivalences import EquivalencesValidator
+from src.analysis.performance_analysis import analyze_performance
 
 # >>> IMPORTAÇÃO DO BRKGA <<<
 from src.metaheuristics.brkga import run_brkga
@@ -40,6 +41,7 @@ def main():
     parser.add_argument('--i', type=int, help='Índice do histórico (ex: 1, 2, 3...)')
     parser.add_argument('--p', help='Período atual (ex: 2024.1, 2024.2, 2025.1...)')
     parser.add_argument('--dict', action='store_true', help='Mostra o dicionário de opções')
+    parser.add_argument('--analyze', action='store_true', help='Executa análise de desempenho dos cenários')
     args = parser.parse_args()
 
     if not args.dict:
@@ -61,6 +63,17 @@ def main():
 
     offered_components_csv = f'data/raw/offers/{args.c}/{args.c}_Offered_Components_{args.p}.csv'
     record_pdf = f'data/raw/record/{args.c}/record_{args.c}-{args.i}.pdf'
+
+    if args.analyze:
+        df = analyze_performance(
+            course=args.c,
+            period=args.p,
+            load_weighted_disciplines=load_weighted_disciplines,
+            processed_input_csv=processed_input_csv,
+            processed_weighted_csv=processed_weighted_input_csv
+        )
+        print('Análise salva!')
+        return
 
     # Pré-processamento dos dados
     student_processor = StudentDataProcessor()
@@ -121,10 +134,11 @@ def main():
     if refinement == 'local':
         start = time.time()
         refined, refined_weight = local_search(
-            heuristic_func, processed_weighted_input_csv, course, period, load_weighted_disciplines, processed_input_csv
+            selected, processed_weighted_input_csv, course, period, load_weighted_disciplines, processed_input_csv
         )
         exec_time = time.time() - start
         print_result(f"Refinamento Local ({heuristic})", refined, refined_weight, exec_time)
+
     elif refinement == 'tabu':
         start = time.time()
         tabu_selected, tabu_weight = tabu_search(
@@ -132,10 +146,11 @@ def main():
         )
         exec_time = time.time() - start
         print_result(f"Busca Tabu ({heuristic})", tabu_selected, tabu_weight, exec_time)
+
     elif refinement == 'vns':
         start = time.time()
         vns_selected, vns_weight = variable_neighborhood_search(
-            heuristic_func, processed_weighted_input_csv, course, period, load_weighted_disciplines, processed_input_csv
+            selected, processed_weighted_input_csv, course, period, load_weighted_disciplines, processed_input_csv
         )
         exec_time = time.time() - start
         print_result(f"VNS ({heuristic})", vns_selected, vns_weight, exec_time)
