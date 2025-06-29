@@ -7,20 +7,18 @@ from src.heuristics.penalty_rules import (
     has_prerequisite_issues
 )
 
-def decode_chromosome(chromosome, all_disciplines, offered_components, requirements, student_status, max_subjects=5, threshold=0.5):
-
+def decode_chromosome(chromosome, all_disciplines, offered_components, requirements, student_status, max_subjects=5, threshold=0.25):
     selected = []
-
     for code, gene_val in sorted(zip(all_disciplines, chromosome), key=lambda x: x[1], reverse=True):
         if len(selected) >= max_subjects:
             break
         if code in selected:
             continue
-        # Só seleciona se o valor do gene for acima do threshold
         if gene_val < threshold:
             continue
         temp_selection = selected + [code]
-        if not has_schedule_conflict(temp_selection, offered_components) and \
+        conflict, _ = has_schedule_conflict(temp_selection, offered_components)  # <-- ATUALIZA AQUI
+        if not conflict and \
            not has_prerequisite_issues(temp_selection, requirements, student_status):
             selected.append(code)
     return selected
@@ -50,7 +48,7 @@ def run_brkga(
     disciplines_with_weights = load_weights_fn(weighted_csv)
     all_disciplines = [code for code, _ in disciplines_with_weights]
 
-    # print("Disciplinas analisadas:", all_disciplines)
+    #print("Disciplinas analisadas:", all_disciplines)
 
     offered_components = load_offered_components(course, period)
     requirements = load_requirements()
@@ -68,28 +66,31 @@ def run_brkga(
 
     # Inicializa população
     population = []
-    discipline_sets = set()
-
-    max_attempts = 10 * population_size
-    attempts = 0
-
-    while len(population) < population_size and attempts < max_attempts:
-        attempts += 1
+    for _ in range(population_size):
         genes = [random.random() for _ in range(n_genes)]
-        selected_disciplines = decode_chromosome(genes, all_disciplines, offered_components, requirements,
-                                                 student_status, max_subjects)
-        key = frozenset(selected_disciplines)
-
-        if key not in discipline_sets:
-            discipline_sets.add(key)
-            population.append(genes)
+        population.append(genes)
+    # discipline_sets = set()
+    #
+    # max_attempts = 10 * population_size
+    # attempts = 0
+    #
+    # while len(population) < population_size and attempts < max_attempts:
+    #     attempts += 1
+    #     genes = [random.random() for _ in range(n_genes)]
+    #     selected_disciplines = decode_chromosome(genes, all_disciplines, offered_components, requirements,
+    #                                              student_status, max_subjects)
+    #     key = frozenset(selected_disciplines)
+    #
+    #     if key not in discipline_sets:
+    #         discipline_sets.add(key)
+    #         population.append(genes)
 
     # Aviso se não conseguiu uma população completamente distinta
-    if len(population) < population_size:
-        print(f"Atenção: população inicial incompleta. Gerados {len(population)} de {population_size}.")
-        while len(population) < population_size:
-            genes = [random.random() for _ in range(n_genes)]
-            population.append(genes)
+    # if len(population) < population_size:
+    #     print(f"Atenção: população inicial incompleta. Gerados {len(population)} de {population_size}.")
+    #     while len(population) < population_size:
+    #         genes = [random.random() for _ in range(n_genes)]
+    #         population.append(genes)
 
     for _ in range(generations):
         seen = set()

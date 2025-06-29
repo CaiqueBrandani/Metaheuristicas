@@ -17,7 +17,7 @@ from src.preprocessing.record_data_extraction.processors.process_workload import
 from src.preprocessing.record_data_extraction.processors.process_subject_history import SubjectHistoryProcessor
 from src.preprocessing.record_data_extraction.processors.process_pending_components import PendingComponentsProcessor
 from src.preprocessing.record_data_extraction.validators.validate_equivalences import EquivalencesValidator
-from src.analysis.performance_analysis import analyze_performance
+#from src.analysis.performance_analysis import analyze_performance
 
 # >>> IMPORTAÇÃO DO BRKGA <<<
 from src.metaheuristics.brkga import run_brkga
@@ -110,9 +110,9 @@ def main():
             population_size=50,
             elite_fraction=0.1,
             mutant_fraction=0.2,
-            generations=50,
+            generations=500,
             max_subjects=5,
-            seed=51
+            seed=99
         )
 
         exec_time = time.time() - start_brkga
