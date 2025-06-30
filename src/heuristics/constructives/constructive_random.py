@@ -2,7 +2,7 @@ import random
 
 from src.heuristics.penalty_rules import load_requirements, load_student_status, has_prerequisite_issues
 
-def random_heuristic(csv_path, course, period, load_weighted_disciplines, processed_input_path, max_subjects=5, max_no_improve=10, seed=None):
+def random_heuristic(csv_path, course, period, load_weighted_disciplines, processed_input_path, max_subjects=5, max_no_improve=1000, seed=None):
     if seed is not None:
         random.seed(seed)
 
@@ -18,7 +18,7 @@ def random_heuristic(csv_path, course, period, load_weighted_disciplines, proces
             selected_disciplines = random.sample(disciplines, min(subjects_to_try, len(disciplines)))
             selected_codes = [code for code, _ in selected_disciplines]
 
-            if has_prerequisite_issues(selected_codes, requirements, student_status):
+            if not has_prerequisite_issues(selected_codes, requirements, student_status):
                 total_weight = sum(weight for _, weight in selected_disciplines)
                 if total_weight > best_combination[1]:
                     best_combination = (selected_codes, total_weight)

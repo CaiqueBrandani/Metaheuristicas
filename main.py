@@ -2,8 +2,11 @@ import argparse
 import time
 import sys
 
+from src.analysis.performance_analysis import analyze_performance
 from src.heuristics.constructives.constructive_greedy import greedy_heuristic
 from src.heuristics.constructives.constructive_random import random_heuristic
+from src.heuristics.constructives.deterministic.deterministic_constructive_greedy import deterministic_greedy_heuristic
+from src.heuristics.constructives.deterministic.deterministic_constructive_random import deterministic_random_heuristic
 from src.heuristics.refinement.refinement_local_search import local_search
 from src.heuristics.refinement.refinement_tabu_search import tabu_search
 from src.metaheuristics.vns import variable_neighborhood_search
@@ -35,7 +38,7 @@ def load_weighted_disciplines(csv_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--h', help='Escolha a heurística (greedy, random, brkga)')
+    parser.add_argument('--h', help='Escolha a heurística (greedy, random, brkga, detgreedy, detrandom)')
     parser.add_argument('--r', help='Escolha o refinamento (none, local, tabu, vns)', default='none')
     parser.add_argument('--c', help='Ex: CCO ou SIN')
     parser.add_argument('--i', type=int, help='Índice do histórico (ex: 1, 2, 3...)')
@@ -64,17 +67,6 @@ def main():
     offered_components_csv = f'data/raw/offers/{args.c}/{args.c}_Offered_Components_{args.p}.csv'
     record_pdf = f'data/raw/record/{args.c}/record_{args.c}-{args.i}.pdf'
 
-    if args.analyze:
-        df = analyze_performance(
-            course=args.c,
-            period=args.p,
-            load_weighted_disciplines=load_weighted_disciplines,
-            processed_input_csv=processed_input_csv,
-            processed_weighted_csv=processed_weighted_input_csv
-        )
-        print('Análise salva!')
-        return
-
     # Pré-processamento dos dados
     student_processor = StudentDataProcessor()
     workload_processor = WorkloadProcessor()
@@ -93,6 +85,17 @@ def main():
     build_processed_normalized_data(processed_input_csv, processed_normalized_input_csv, offered_components_csv)
     build_processed_weighted_data(processed_normalized_input_csv, processed_weighted_input_csv)
 
+    if args.analyze:
+        df = analyze_performance(
+            course=args.c,
+            period=args.p,
+            load_weighted_disciplines=load_weighted_disciplines,
+            processed_input_csv=processed_input_csv,
+            processed_weighted_csv=processed_weighted_input_csv
+        )
+        print('Análise salva!')
+        return
+
     # Heurísticas construtivas
     if heuristic == 'greedy':
         heuristic_func = greedy_heuristic
@@ -101,27 +104,21 @@ def main():
     elif heuristic == 'brkga':
         start_brkga = time.time()
         print("\n--- BRKGA ---")
-        selected_brkga, total_weight_brkga = run_brkga(
-            processed_weighted_input_csv,
-            course,
-            load_weighted_disciplines,
-            processed_input_csv,
-            period,
-            population_size=50,
-            elite_fraction=0.1,
-            mutant_fraction=0.2,
-            generations=500,
-            max_subjects=5,
-            seed=99
-        )
-
+        selected_brkga, total_weight_brkga = run_brkga(processed_weighted_input_csv, course, load_weighted_disciplines,
+                                                       processed_input_csv, period, population_size=50,
+                                                       elite_fraction=0.1, mutant_fraction=0.2, generations=500,
+                                                       max_subjects=5, seed=99)
         exec_time = time.time() - start_brkga
         print(f"Matérias escolhidas: {selected_brkga}")
         print(f"Peso total: {total_weight_brkga}")
         print(f"Tempo de execução: {exec_time:.4f} segundos")
         return
+    elif heuristic == 'detgreedy':
+        heuristic_func = deterministic_greedy_heuristic
+    elif heuristic == 'detrandom':
+        heuristic_func = deterministic_random_heuristic
     else:
-        print_error("Heurística inválida. Use 'greedy', 'random' ou 'brkga'.")
+        print_error("Heurística inválida.")
         sys.exit(1)
 
     # Execução da heurística (greedy ou random)

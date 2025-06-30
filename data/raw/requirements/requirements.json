@@ -1,52 +1,247 @@
 {
-  "XDES02": [["XDES01"], ["COM111"], ["ECOP11A"]],
-  "XDES03": [["XDES02"], ["COM220"], ["ECOP13A", "ECOT03A"]],
-  "CDES05": [["XMAC01"], ["MAT015"], ["MAT017"], ["MAT057"], ["ECOM01A"]],
-  "XMAC02": ["MAT00A", [["XMAC01"], ["ECOM01A"]], [["STCO01"], ["CTCO01"], ["ECOP02A"]]],
-  "CMAC03": [["CTCO01"], ["STCO01"], ["COM111"]],
-  "CMAC04": ["MAT00A"],
-  "CMAC05": [["MAT00B"], ["MAT002"]],
-  "MAT00B": [["MAT00A"], ["MAT001"], ["MAT010"]],
-  "XRSC01": [["SRSC02"], ["CRSC02"], ["COM120"], ["ECOS01A", "ECOS11A"]],
-  "CRSC02": [[["CTCO01"], ["STCO01"]], "CRSC04"],
-  "CRSC04": [["CRSC03"], ["CIC120"]],
-  "CRSC05": [["SRSC02"], ["CRSC02"], ["COM120"]],
-  "CTCO01": [["XDES01"], ["COM110"]],
-  "CTCO02": [["CTCO01"], ["STCO01"], ["COM111"]],
-  "CTCO03": [["XDES02"], ["COM220"]],
-  "CTCO04": [["CTCO02"], ["COM112"]],
-  "CTCO05": [[["CDES05", "CTCO04"]], [["CIC110", "CIC131"]], ["ECOM03A"]],
-  "CTCO06": [["CTCO05"], ["CIC132"], ["ECOM05A"]],
-  "XPAD01": [["STCO02"], ["CTCO02"], ["COM112"], ["ECOT02A", "ECOT12A"]],
-  "XMCO01": [["XMAC02"], ["MAT013"]],
-  "CMCO05": ["XMAC02", [["XDES02"], ["ECOP13A"]]],
-  "XAHC01": ["XRSC01", "XDES04", [["IEPG21"], ["ADM08H"], ["ADM51H"], ["ADM52H"], ["ADM54H"], ["ADM58H"], ["LET007"]]],
-  "XAHC02": [[["XDES03", "XDES04"]], [["COM210", "COM222"]], ["ECOX05"]],
-  "XAHC03": ["XRSC01", [["CTCO04"], ["ADM51E"]]],
-  "SDES05": [["XDES04"], ["COM210"]],
-  "SDES06": [["XDES04"], ["COM210"], ["ECOT01A", "ECOT11A"]],
-  "SDES07": [[["XDES04", "XPAD01", "XDES03"]], [["COM220", "COM230", "COM222"]]],
-  "XDES08": [["XDES04"], ["COM210"]],
-  "XDES10": [["XDES04"], ["COM210"]],
-  "XDES11": [["XDES04"], ["COM210"]],
-  "CDES13": [["XDES02"], ["ECOP13A"]],
-  "SPAD02": [["XPAD01"], ["COM230"]],
-  "SPAD03": [[["XMAC02"], ["MAT013"]], [["XPAD01"], ["COM230"]]],
-  "XPAD04": [["XPAD01"], ["COM230"]],
-  "XPAD08": [["XPAD01"], ["COM230"]],
-  "XPAD09": ["XMAC02"],
-  "SADG01": ["IEPG22"],
-  "XRSC06": [["XRSC01"], ["COM240"]],
-  "CRSC08": [["XRSC01"], ["COM240"]],
-  "XRSC09": [["XRSC01"], ["COM240"], ["TELC03A", "TELC13A"]],
-  "XRSC07": [["XRSC01"], ["COM240"]],
-  "ECOS04": [[["XMAC02"], ["MAT013"], ["CTCO02"], ["STCO02"], ["COM112"]], ["MAT250"]],
-  "XMCO02": [[["XMAC02"], ["MAT013"], ["CTCO02"], ["STCO02"], ["COM112"]], ["MAT250"]],
-  "XMCO03": [[["XMAC02"], ["MAT013"]], [["STCO02"], ["CTCO02"], ["COM112"]]],
-  "XMCO04": [[["XMAC02"], ["MAT013"]], [["STCO02"], ["CTCO02"], ["COM112"]]],
-  "CMCO06": [[["XMAC02"], ["MAT013"]], "CMCO05"],
-  "CMCO07": ["XMAC01", "CMCO05"],
-  "XMCO08": [["XMAC01"], ["MAT015"], ["MAT017"], ["MAT057"], ["ECOM01A", "ECOM11A"], ["ECOM01", "ECOM11"]],
-  "XAHC07": ["XDES03", "XDES04"],
-  "XAHC08": ["XMAC02", "XAHC02"]
+  "XDES02": [
+    ["XDES01"],
+    ["COM111"],
+    ["ECOP11A"]
+  ],
+  "XDES03": [
+    ["XDES02"],
+    ["COM220"],
+    ["ECOP13A", "ECOT03A"]
+  ],
+  "CDES05": [
+    ["XMAC01"],
+    ["MAT015"],
+    ["MAT017"],
+    ["MAT057"],
+    ["ECOM01A"]
+  ],
+  "XMAC02": [
+    ["MAT00A", "XMAC01", "STCO01"],
+    ["MAT00A", "XMAC01", "CTCO01"],
+    ["MAT00A", "XMAC01", "ECOP02A"],
+    ["MAT00A", "ECOM01A", "STCO01"],
+    ["MAT00A", "ECOM01A", "CTCO01"],
+    ["MAT00A", "ECOM01A", "ECOP02A"]
+  ],
+  "CMAC03": [
+    ["CTCO01"],
+    ["STCO01"],
+    ["COM111"]
+  ],
+  "CMAC04": [
+    ["MAT00A"]
+  ],
+  "CMAC05": [
+    ["MAT00B"],
+    ["MAT002"]
+  ],
+  "MAT00B": [
+    ["MAT00A"],
+    ["MAT001"],
+    ["MAT010"]
+  ],
+  "XRSC01": [
+    ["SRSC02"],
+    ["CRSC02"],
+    ["COM120"],
+    ["ECOS01A", "ECOS11A"]
+  ],
+  "CRSC02": [
+    ["CTCO01", "CRSC04"],
+    ["STCO01", "CRSC04"]
+  ],
+  "CRSC04": [
+    ["CRSC03"],
+    ["CIC120"]
+  ],
+  "CRSC05": [
+    ["SRSC02"],
+    ["CRSC02"],
+    ["COM120"]
+  ],
+  "CTCO01": [
+    ["XDES01"],
+    ["COM110"]
+  ],
+  "CTCO02": [
+    ["CTCO01"],
+    ["STCO01"],
+    ["COM111"]
+  ],
+  "CTCO03": [
+    ["XDES02"],
+    ["COM220"]
+  ],
+  "CTCO04": [
+    ["CTCO02"],
+    ["COM112"]
+  ],
+  "CTCO05": [
+    ["CDES05", "CTCO04"],
+    ["CIC110", "CIC131"],
+    ["ECOM03A"]
+  ],
+  "CTCO06": [
+    ["CTCO05"],
+    ["CIC132"],
+    ["ECOM05A"]
+  ],
+  "XPAD01": [
+    ["STCO02"],
+    ["CTCO02"],
+    ["COM112"],
+    ["ECOT02A", "ECOT12A"]
+  ],
+  "XMCO01": [
+    ["XMAC02"],
+    ["MAT013"]
+  ],
+  "CMCO05": [
+    ["XMAC02", "XDES02"],
+    ["XMAC02", "ECOP13A"]
+  ],
+  "XAHC01": [
+    ["XRSC01", "XDES04", "IEPG21"],
+    ["XRSC01", "XDES04", "ADM08H"],
+    ["XRSC01", "XDES04", "ADM51H"],
+    ["XRSC01", "XDES04", "ADM52H"],
+    ["XRSC01", "XDES04", "ADM54H"],
+    ["XRSC01", "XDES04", "ADM58H"],
+    ["XRSC01", "XDES04", "LET007"]
+  ],
+  "XAHC02": [
+    ["XDES03", "XDES04"],
+    ["COM210", "COM222"],
+    ["ECOX05"]
+  ],
+  "XAHC03": [
+    ["XRSC01", "CTCO04"],
+    ["XRSC01", "ADM51E"]
+  ],
+  "SDES05": [
+    ["XDES04"],
+    ["COM210"]
+  ],
+  "SDES06": [
+    ["XDES04"],
+    ["COM210"],
+    ["ECOT01A", "ECOT11A"]
+  ],
+  "SDES07": [
+    ["XDES04", "XPAD01", "XDES03"],
+    ["COM220", "COM230", "COM222"]
+  ],
+  "XDES08": [
+    ["XDES04"],
+    ["COM210"]
+  ],
+  "XDES10": [
+    ["XDES04"],
+    ["COM210"]
+  ],
+  "XDES11": [
+    ["XDES04"],
+    ["COM210"]
+  ],
+  "CDES13": [
+    ["XDES02"],
+    ["ECOP13A"]
+  ],
+  "SPAD02": [
+    ["XPAD01"],
+    ["COM230"]
+  ],
+  "SPAD03": [
+    ["XMAC02", "XPAD01"],
+    ["XMAC02", "COM230"],
+    ["MAT013", "XPAD01"],
+    ["MAT013", "COM230"]
+  ],
+  "XPAD04": [
+    ["XPAD01"],
+    ["COM230"]
+  ],
+  "XPAD08": [
+    ["XPAD01"],
+    ["COM230"]
+  ],
+  "XPAD09": [
+    ["XMAC02"]
+  ],
+  "SADG01": [
+    ["IEPG22"]
+  ],
+  "XRSC06": [
+    ["XRSC01"],
+    ["COM240"]
+  ],
+  "CRSC08": [
+    ["XRSC01"],
+    ["COM240"]
+  ],
+  "XRSC09": [
+    ["XRSC01"],
+    ["COM240"],
+    ["TELC03A", "TELC13A"]
+  ],
+  "XRSC07": [
+    ["XRSC01"],
+    ["COM240"]
+  ],
+  "ECOS04": [
+    ["XMAC02", "CTCO02"],
+    ["XMAC02", "STCO02"],
+    ["XMAC02", "COM112"],
+    ["MAT013", "CTCO02"],
+    ["MAT013", "STCO02"],
+    ["MAT013", "COM112"],
+    ["MAT250"]
+  ],
+  "XMCO02": [
+    ["XMAC02", "CTCO02"],
+    ["XMAC02", "STCO02"],
+    ["XMAC02", "COM112"],
+    ["MAT013", "CTCO02"],
+    ["MAT013", "STCO02"],
+    ["MAT013", "COM112"],
+    ["MAT250"]
+  ],
+  "XMCO03": [
+    ["XMAC02", "STCO02"],
+    ["XMAC02", "CTCO02"],
+    ["XMAC02", "COM112"],
+    ["MAT013", "STCO02"],
+    ["MAT013", "CTCO02"],
+    ["MAT013", "COM112"]
+  ],
+  "XMCO04": [
+    ["XMAC02", "STCO02"],
+    ["XMAC02", "CTCO02"],
+    ["XMAC02", "COM112"],
+    ["MAT013", "STCO02"],
+    ["MAT013", "CTCO02"],
+    ["MAT013", "COM112"]
+  ],
+  "CMCO06": [
+    ["XMAC02", "CMCO05"],
+    ["MAT013", "CMCO05"]
+  ],
+  "CMCO07": [
+    ["XMAC01", "CMCO05"]
+  ],
+  "XMCO08": [
+    ["XMAC01"],
+    ["MAT015"],
+    ["MAT017"],
+    ["MAT057"],
+    ["ECOM01A", "ECOM11A"],
+    ["ECOM01", "ECOM11"]
+  ],
+  "XAHC07": [
+    ["XDES03", "XDES04"]
+  ],
+  "XAHC08": [
+    ["XMAC02", "XAHC02"]
+  ]
 }

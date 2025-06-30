@@ -17,25 +17,6 @@ def load_student_status(processed_input_path):
             student_status[subject] = status
     return student_status
 
-def has_prerequisite_issues(selected_disciplines, requirements, student_status):
-    def is_satisfied(prerequisite):
-        if isinstance(prerequisite, list):
-            if prerequisite and all(isinstance(item, list) for item in prerequisite):
-                return any(is_satisfied(group) for group in prerequisite)
-
-            else:
-                return all(is_satisfied(item) for item in prerequisite)
-        elif isinstance(prerequisite, str):
-            return student_status.get(prerequisite, 1) == 0
-        return False
-
-    for discipline in selected_disciplines:
-        prereq = requirements.get(discipline, [])
-        if prereq:
-            if not is_satisfied(prereq):
-                return True
-    return False
-
 def load_offered_components(course, period):
     file_path = f"data/raw/offers/{course}/{course}_Offered_Components_{period}.csv"
     offered_components = {}
@@ -46,6 +27,19 @@ def load_offered_components(course, period):
             times = row[3:]
             offered_components[code] = times
     return offered_components
+
+def has_prerequisite_issues(selected_disciplines, requirements, student_status):
+    for disc in selected_disciplines:
+        if disc not in requirements:
+            continue  # sem pré-requisito
+        ok_in_or = False
+        for req_list in requirements[disc]:
+            if all(student_status.get(req, 1) == 0 for req in req_list):
+                ok_in_or = True
+                break
+        if not ok_in_or:
+            return True  # encontrou problema
+    return False
 
 def has_schedule_conflict(selected_disciplines, offered_components):
     def parse_slots(schedule_str):
@@ -82,3 +76,33 @@ def has_schedule_conflict(selected_disciplines, offered_components):
             conflicts.append(disc)
 
     return len(conflicts) > 0, conflicts
+
+def fix_conflicts(disciplines, offered_comps, equivalences, offered_set,
+                  weight_map, requirements, student_status):
+    from copy import deepcopy
+    new_sol = deepcopy(disciplines)
+    conflict, conflicted = has_schedule_conflict(new_sol, offered_comps)
+    for disc in conflicted:
+        replaced = False
+        for eq in equivalences.get(disc, []):
+            if eq in offered_set and eq not in new_sol:
+                temp = new_sol[:]
+                temp[temp.index(disc)] = eq
+                c, _ = has_schedule_conflict(temp, offered_comps)
+                if not c and not has_prerequisite_issues(temp, requirements, student_status):
+                    new_sol = temp
+                    replaced = True
+                    break
+        if not replaced:
+            for alt in weight_map:
+                if alt not in new_sol:
+                    temp = new_sol[:]
+                    temp[temp.index(disc)] = alt
+                    c, _ = has_schedule_conflict(temp, offered_comps)
+                    if not c and not has_prerequisite_issues(temp, requirements, student_status):
+                        new_sol = temp
+                        replaced = True
+                        break
+        if not replaced:
+            new_sol.remove(disc)
+    return new_sol

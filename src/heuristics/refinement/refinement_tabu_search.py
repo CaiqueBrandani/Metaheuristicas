@@ -17,7 +17,7 @@ def tabu_search(initial_solution, weighted_csv, load_weighted_disciplines,
     offered_set  = set(offered.keys())
 
     def score(sol):
-        return sum(weights[c] for c in sol)
+        return sum(weights.get(c, 0) for c in sol)
 
     def is_valid(sol):
         conflict, _ = has_schedule_conflict(sol, offered)
